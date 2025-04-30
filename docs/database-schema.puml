@@ -1,0 +1,133 @@
+@startuml Course Platform Database Schema
+
+' Define enums
+enum CourseSectionStatus {
+  public
+  private
+}
+
+enum LessonStatus {
+  public
+  private
+  preview
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+enum ProductStatus {
+  public
+  private
+}
+
+' Define tables
+entity "users" {
+  + id : UUID <<PK>>
+  --
+  clerkUserId : text <<unique>>
+  email : text
+  name : text
+  role : UserRole
+  imageUrl : text
+  deletedAt : timestamp
+  createdAt : timestamp
+  updatedAt : timestamp
+}
+
+entity "courses" {
+  + id : UUID <<PK>>
+  --
+  name : text
+  description : text
+  createdAt : timestamp
+  updatedAt : timestamp
+}
+
+entity "course_sections" {
+  + id : UUID <<PK>>
+  --
+  name : text
+  status : CourseSectionStatus
+  order : integer
+  courseId : UUID <<FK>>
+  createdAt : timestamp
+  updatedAt : timestamp
+}
+
+entity "lessons" {
+  + id : UUID <<PK>>
+  --
+  name : text
+  description : text
+  youtubeVideoId : text
+  order : integer
+  status : LessonStatus
+  sectionId : UUID <<FK>>
+  createdAt : timestamp
+  updatedAt : timestamp
+}
+
+entity "products" {
+  + id : UUID <<PK>>
+  --
+  name : text
+  description : text
+  imageUrl : text
+  priceInDollars : integer
+  status : ProductStatus
+  createdAt : timestamp
+  updatedAt : timestamp
+}
+
+entity "purchases" {
+  + id : UUID <<PK>>
+  --
+  pricePaidInCents : integer
+  productDetails : jsonb
+  userId : UUID <<FK>>
+  productId : UUID <<FK>>
+  stripeSessionId : text <<unique>>
+  refundedAt : timestamp
+  createdAt : timestamp
+  updatedAt : timestamp
+}
+
+entity "course_products" {
+  + courseId : UUID <<FK>>
+  + productId : UUID <<FK>>
+  --
+  createdAt : timestamp
+  updatedAt : timestamp
+}
+
+entity "user_course_access" {
+  + userId : UUID <<FK>>
+  + courseId : UUID <<FK>>
+  --
+  createdAt : timestamp
+  updatedAt : timestamp
+}
+
+entity "user_lesson_complete" {
+  + userId : UUID <<FK>>
+  + lessonId : UUID <<FK>>
+  --
+  createdAt : timestamp
+  updatedAt : timestamp
+}
+
+' Define relationships
+users ||--o{ purchases
+products ||--o{ purchases
+courses ||--o{ course_sections
+course_sections ||--o{ lessons
+users ||--o{ user_course_access
+courses ||--o{ user_course_access
+users ||--o{ user_lesson_complete
+lessons ||--o{ user_lesson_complete
+courses ||--o{ course_products
+products ||--o{ course_products
+
+@enduml 
